@@ -1,0 +1,12 @@
+name: Dart Setup
+description: Install the Dart SDK on macOS or Linux
+
+inputs:
+  dart-version:
+    description: "Dart release channel (stable, beta) or a specific version"
+    required: false
+    default: "stable"
+
+runs:
+  using: node20
+  main: dist/index.js
