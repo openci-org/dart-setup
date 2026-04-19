@@ -25754,12 +25754,28 @@ async function run() {
     try {
         const dartVersion = core.getInput("dart-version") || "stable";
         const platform = os.platform();
+        const isChannel = dartVersion === "stable" || dartVersion === "beta";
         core.info(`Installing Dart SDK (${dartVersion}) on ${platform}...`);
         // Check if Dart is already installed
         try {
             const existingVersion = await (0, helpers_1.execAndCapture)("dart --version");
-            core.info(`Dart SDK already installed: ${existingVersion.trim()}, skipping installation.`);
-            return;
+            core.info(`Existing Dart SDK: ${existingVersion.trim()}`);
+            if (!isChannel) {
+                // Specific version requested — skip if already matches
+                if (existingVersion.includes(dartVersion)) {
+                    core.info(`Requested version ${dartVersion} already installed, skipping.`);
+                    return;
+                }
+                core.info(`Version mismatch, installing ${dartVersion}...`);
+            }
+            else if (platform !== "linux") {
+                // On macOS with channel: let Homebrew handle upgrades
+                core.info(`Channel-based install on macOS, proceeding with Homebrew...`);
+            }
+            else {
+                // On Linux with channel: always re-download to get the latest
+                core.info(`Channel-based install on Linux, downloading latest...`);
+            }
         }
         catch {
             core.info("Dart SDK not found, proceeding with installation...");
