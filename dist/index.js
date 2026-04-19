@@ -25755,6 +25755,15 @@ async function run() {
         const dartVersion = core.getInput("dart-version") || "stable";
         const platform = os.platform();
         core.info(`Installing Dart SDK (${dartVersion}) on ${platform}...`);
+        // Check if Dart is already installed
+        try {
+            const existingVersion = await (0, helpers_1.execAndCapture)("dart --version");
+            core.info(`Dart SDK already installed: ${existingVersion.trim()}, skipping installation.`);
+            return;
+        }
+        catch {
+            core.info("Dart SDK not found, proceeding with installation...");
+        }
         switch (platform) {
             case "darwin":
                 await installOnMacOS(dartVersion);
@@ -25792,17 +25801,15 @@ async function installOnMacOS(channel) {
     }
 }
 async function installOnLinux(channel) {
-    core.info("Installing Dart SDK via apt-get...");
-    // Add the Dart signing key
-    await (0, helpers_1.exec)("wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg");
-    // Add the Dart package repository
-    const arch = os.arch() === "arm64" ? "arm64" : "amd64";
-    await (0, helpers_1.exec)(`echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=${arch}] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list`);
-    // Install
-    await (0, helpers_1.exec)("sudo apt-get update");
-    await (0, helpers_1.exec)("sudo apt-get install -y dart");
+    core.info("Installing Dart SDK via direct download...");
+    const arch = os.arch() === "arm64" ? "arm64" : "x64";
+    const url = `https://storage.googleapis.com/dart-archive/channels/${channel}/release/latest/sdk/dartsdk-linux-${arch}-release.zip`;
+    // Download and extract using curl (available in most environments, unlike wget)
+    await (0, helpers_1.exec)(`curl -fsSL "${url}" -o /tmp/dart-sdk.zip`);
+    await (0, helpers_1.exec)("unzip -o /tmp/dart-sdk.zip -d /opt");
+    await (0, helpers_1.exec)("rm /tmp/dart-sdk.zip");
     // Add to PATH
-    core.addPath("/usr/lib/dart/bin");
+    core.addPath("/opt/dart-sdk/bin");
 }
 run();
 
