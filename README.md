@@ -5,7 +5,7 @@ Install the Dart SDK on macOS or Linux.
 ## Usage
 
 ```yaml
-- uses: open-ci-io/dart-setup@v1
+- uses: openci-org/dart-setup@v1
   with:
     dart-version: "stable" # optional, defaults to "stable"
 ```
